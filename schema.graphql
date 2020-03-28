@@ -1,0 +1,35 @@
+type User {
+    id: String!
+    name: String!
+    email: String!
+    orders: [Order]
+}
+
+type Order {
+    id: String!
+    buyer: User!
+    total_price: Float!
+    details: [OrderDetail!]!
+}
+
+type OrderDetail {
+    id: String!
+    order: Order!
+    item_name: String!
+    item_price: Int!
+    item_quantity: Int!
+}
+
+input NewUser {
+    name: String!
+    email: String!
+}
+
+type Query {
+    orders: [Order!]!
+    users: [User!]!
+}
+
+type Mutation {
+    createUser(input: NewUser!): User!
+}
