@@ -14,7 +14,7 @@ func (r *Resolver) Order() generated.OrderResolver {
 }
 
 func (o *orderResolver) Buyer(ctx context.Context, obj *models.Order) (*models.User, error) {
-	return getUserLoader(ctx).Load(obj.BuyerId) // single query to fetch many rows
+	return ctxLoaders(ctx).getUserByIds.Load(obj.BuyerId) // single query to fetch many rows
 	
 	// return o.UserRepo.GetUserById(obj.BuyerId) multiple query to fetch many rows
 }

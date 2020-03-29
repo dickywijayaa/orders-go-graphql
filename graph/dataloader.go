@@ -11,18 +11,26 @@ import (
 )
 
 type Dataloader struct {
-	UserRepo repositories.UserRepository
+	UserRepo 	repositories.UserRepository
+	OrderRepo	repositories.OrderRepository
 }
 
-const userLoaderKey = "userloader"
+type Loaders struct {
+	getUserByIds 		*UserLoader
+	getOrderByBuyerIds	*OrderLoader
+}
 
-func (dl *Dataloader) DataloaderMiddleware(db *pg.DB, next http.Handler) http.Handler {
+const ctxLoaderKey = "ctxloader"
+
+func (dl *Dataloader) LoaderMiddleware(db *pg.DB, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userLoader := UserLoader{
-			maxBatch: 10,
-			wait:	  1 * time.Millisecond,
-			fetch:	func(ids []string) ([]*models.User, []error) {
-				users, err := dl.UserRepo.GetUserByIds(ids)
+		loaders := Loaders{}
+
+		loaders.getUserByIds = &UserLoader{
+			maxBatch: 100,
+			wait:	  2 * time.Millisecond,
+			fetch:	func(user_ids []string) ([]*models.User, []error) {
+				users, err := dl.UserRepo.GetUserByIds(user_ids)
 				
 				if err != nil {
 					return nil, err
@@ -34,9 +42,9 @@ func (dl *Dataloader) DataloaderMiddleware(db *pg.DB, next http.Handler) http.Ha
 					u[user.ID] = user
 				}
 
-				result := make([]*models.User, len(ids))
+				result := make([]*models.User, len(user_ids))
 
-				for i, id := range ids {
+				for i, id := range user_ids {
 					result[i] = u[id]
 				}
 
@@ -44,12 +52,20 @@ func (dl *Dataloader) DataloaderMiddleware(db *pg.DB, next http.Handler) http.Ha
 			},
 		}
 
-		ctx := context.WithValue(r.Context(), userLoaderKey, &userLoader)
+		loaders.getOrderByBuyerIds = &OrderLoader{
+			maxBatch: 100,
+			wait:	  2 * time.Millisecond,
+			fetch: 	func(buyer_ids []string) ([]*models.Order, []error)	{
+				// need to work on this and implement in resolver
+				return dl.OrderRepo.GetOrderByBuyerIds(buyer_ids)
+			},
+		}
 
+		ctx := context.WithValue(r.Context(), ctxLoaderKey, loaders)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func getUserLoader(ctx context.Context) *UserLoader {
-	return ctx.Value(userLoaderKey).(*UserLoader)
+func ctxLoaders(ctx context.Context) Loaders {
+	return ctx.Value(ctxLoaderKey).(Loaders)
 }

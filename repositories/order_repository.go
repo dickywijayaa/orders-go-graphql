@@ -49,3 +49,14 @@ func (o *OrderRepository) GetBuyerOrders(buyer_id string) ([]*models.Order, erro
 
 	return orders, nil
 }
+
+
+func (o *OrderRepository) GetOrderByBuyerIds(buyer_ids []string) ([]*models.Order, []error) {
+	var orders []*models.Order
+	err := o.DB.Model(&orders).Where("buyer_id in (?)", pg.In(buyer_ids)).Select()
+	if err != nil {
+		return nil, []error{err}
+	}
+
+	return orders, nil
+}
