@@ -30,6 +30,17 @@ func (u *UserRepository) GetUserById(id string) (*models.User, error) {
 	return &user, nil
 }
 
+func (u *UserRepository) GetUserByIds(ids []string) ([]*models.User, []error) {
+	var users []*models.User
+	err := u.DB.Model(&users).Where("id in (?)", pg.In(ids)).Select()
+	
+	if err != nil {
+		return nil, []error{err}
+	}
+
+	return users, nil
+}
+
 func (u *UserRepository) CreateUser(user *models.User) (*models.User, error) {
 	_, err := u.DB.Model(user).Returning("*").Insert()
 

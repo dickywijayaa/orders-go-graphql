@@ -29,6 +29,10 @@ func main() {
 
 	defer db.Close()
 
+	middleware := graph.Dataloader{
+		UserRepo: repositories.UserRepository{DB: db},
+	}
+
 	db.AddQueryHook(postgres.DBLogger{})
 
 	c := generated.Config{Resolvers: &graph.Resolver{
@@ -37,10 +41,10 @@ func main() {
 		OrderDetailRepo: repositories.OrderDetailRepository{DB: db},
 	}}
 
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(c))
+	queryHandler := handler.NewDefaultServer(generated.NewExecutableSchema(c))
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
+	http.Handle("/query", middleware.DataloaderMiddleware(db, queryHandler))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
