@@ -2,6 +2,8 @@ package graph
 
 import (
 	"context"
+	"errors"
+	"regexp"
 
 	"github.com/dickywijayaa/orders-go-graphql/models"
 	"github.com/dickywijayaa/orders-go-graphql/graph/model"
@@ -16,7 +18,16 @@ func (r *Resolver) Mutation() generated.MutationResolver {
 
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (*models.User, error) {
-	//do validate
+	if (len(input.Name) < 5) {
+		return nil, errors.New("name is not long enough.")
+	}
+
+	rgx := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+	result := rgx.MatchString(input.Email)
+	
+	if !result {
+		return nil, errors.New("invalid email format")
+	}
 
 	user := models.User{
 		Name: input.Name,
