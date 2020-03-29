@@ -20,3 +20,14 @@ func (od *OrderDetailRepository) GetOrderDetailsByOrderId(order_id string) ([]*m
 
 	return order_details, nil
 }
+
+func (od *OrderDetailRepository) GetOrderDetails(order_ids []string) ([]*models.OrderDetail, error) {
+	var order_details []*models.OrderDetail
+
+	err := od.DB.Model(&order_details).Where("order_id in (?)", pg.In(order_ids)).Select()
+	if err != nil {
+		return nil, err
+	}
+
+	return order_details, nil
+}

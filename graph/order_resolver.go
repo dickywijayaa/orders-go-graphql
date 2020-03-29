@@ -20,9 +20,12 @@ func (o *orderResolver) Buyer(ctx context.Context, obj *models.Order) (*models.U
 }
 
 func (o *orderResolver) TotalPrice(ctx context.Context, obj *models.Order) (float64, error) {
+	// to do remove to loadermiddleware
 	return o.OrderRepo.GetOrderTotalPrice(obj.ID)
 }
 
 func (o *orderResolver) Details(ctx context.Context, obj *models.Order) ([]*models.OrderDetail, error) {
-	return o.OrderDetailRepo.GetOrderDetailsByOrderId(obj.ID)
+	return ctxLoaders(ctx).getOrderDetails.Load(obj.ID) // single query to fetch many rows
+
+	// return o.OrderDetailRepo.GetOrderDetailsByOrderId(obj.ID)
 }

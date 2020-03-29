@@ -1,3 +1,5 @@
+// generate new lodaer ? here is an example :
+// go run github.com/vektah/dataloaden OrderLoader string []github.com/dickywijayaa/orders-go-graphql/models.OrderDetail
 package graph
 
 import (
@@ -11,13 +13,15 @@ import (
 )
 
 type Dataloader struct {
-	UserRepo 	repositories.UserRepository
-	OrderRepo	repositories.OrderRepository
+	UserRepo 		repositories.UserRepository
+	OrderRepo		repositories.OrderRepository
+	OrderDetailRepo	repositories.OrderDetailRepository
 }
 
 type Loaders struct {
 	getUserByIds 		*UserLoader
 	getOrderByBuyerIds	*OrderLoader
+	getOrderDetails		*OrderDetailLoader
 }
 
 const ctxLoaderKey = "ctxloader"
@@ -55,9 +59,47 @@ func (dl *Dataloader) LoaderMiddleware(db *pg.DB, next http.Handler) http.Handle
 		loaders.getOrderByBuyerIds = &OrderLoader{
 			maxBatch: 100,
 			wait:	  2 * time.Millisecond,
-			fetch: 	func(buyer_ids []string) ([]*models.Order, []error)	{
+			fetch: 	func(buyer_ids []string) ([][]*models.Order, []error)	{
 				// need to work on this and implement in resolver
-				return dl.OrderRepo.GetOrderByBuyerIds(buyer_ids)
+				orders, err := dl.OrderRepo.GetOrderByBuyerIds(buyer_ids)
+				if err != nil {
+					return nil, err
+				}
+
+				result := make([][]*models.Order, len(buyer_ids))
+				for i, id := range buyer_ids {
+					for _, order := range orders {
+						if order.BuyerId == id {
+							result[i] = append(result[i], order)
+						}
+					}
+				}
+
+				return result, nil
+			},
+		}
+
+		loaders.getOrderDetails = &OrderDetailLoader{
+			maxBatch: 100,
+			wait:	  2 * time.Millisecond,
+			fetch: 	func(order_ids []string) ([][]*models.OrderDetail, []error)	{
+				// need to work on this and implement in resolver
+				order_details, err := dl.OrderDetailRepo.GetOrderDetails(order_ids)
+				if err != nil {
+					return nil, []error{err}
+				}
+
+
+				result := make([][]*models.OrderDetail, len(order_ids))
+				for i, id := range order_ids {
+					for _, order_detail := range order_details {
+						if order_detail.OrderId == id {
+							result[i] = append(result[i], order_detail)
+						}
+					}
+				}
+
+				return result, nil
 			},
 		}
 

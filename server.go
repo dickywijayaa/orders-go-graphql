@@ -31,6 +31,8 @@ func main() {
 
 	middleware := graph.Dataloader{
 		UserRepo: repositories.UserRepository{DB: db},
+		OrderRepo: repositories.OrderRepository{DB: db},
+		OrderDetailRepo: repositories.OrderDetailRepository{DB: db},
 	}
 
 	db.AddQueryHook(postgres.DBLogger{})
