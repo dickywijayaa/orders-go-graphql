@@ -35,3 +35,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 	}
 	return r.UserRepo.CreateUser(&user)
 }
+
+func (r *mutationResolver) DeleteUser(ctx context.Context, input string) (string, error) {
+	return r.UserRepo.DeleteUser(input)
+}

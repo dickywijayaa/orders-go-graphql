@@ -50,3 +50,16 @@ func (u *UserRepository) CreateUser(user *models.User) (*models.User, error) {
 
 	return user, err
 }
+
+func (u *UserRepository) DeleteUser(id string) (string, error) {
+	user := &models.User{
+		ID: id,
+	}
+	err := u.DB.Delete(user)
+
+	if err != nil {
+		return "", err
+	}
+
+	return id, err
+}
