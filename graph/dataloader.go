@@ -1,5 +1,5 @@
 // generate new lodaer ? here is an example :
-// go run github.com/vektah/dataloaden OrderLoader string []github.com/dickywijayaa/orders-go-graphql/models.OrderDetail
+// go run github.com/vektah/dataloaden SingleOrderLoader string *github.com/dickywijayaa/orders-go-graphql/models.Order
 package graph
 
 import (
@@ -20,7 +20,8 @@ type Dataloader struct {
 
 type Loaders struct {
 	getUserByIds 		*UserLoader
-	getOrderByBuyerIds	*OrderLoader
+	getOrderByBuyerIds	*OrderSliceLoader
+	getOrderByIds 		*OrderLoader
 	getOrderDetails		*OrderDetailLoader
 }
 
@@ -56,10 +57,10 @@ func (dl *Dataloader) LoaderMiddleware(db *pg.DB, next http.Handler) http.Handle
 			},
 		}
 
-		loaders.getOrderByBuyerIds = &OrderLoader{
+		loaders.getOrderByBuyerIds = &OrderSliceLoader{
 			maxBatch: 100,
-			wait:	  2 * time.Millisecond,
-			fetch: 	func(buyer_ids []string) ([][]*models.Order, []error)	{
+			wait: 2 * time.Millisecond,
+			fetch: func(buyer_ids []string) ([][]*models.Order, []error) {
 				// need to work on this and implement in resolver
 				orders, err := dl.OrderRepo.GetOrderByBuyerIds(buyer_ids)
 				if err != nil {
@@ -79,11 +80,35 @@ func (dl *Dataloader) LoaderMiddleware(db *pg.DB, next http.Handler) http.Handle
 			},
 		}
 
+		loaders.getOrderByIds = &OrderLoader{
+			maxBatch: 100,
+			wait: 2 * time.Millisecond,
+			fetch: func(ids []string) ([]*models.Order, []error) {
+				orders, err := dl.OrderRepo.GetOrderByIds(ids)
+				if err != nil {
+					return nil, []error{err}
+				}
+
+				o := make(map[string]*models.Order, len(orders))
+
+				for _, order := range orders {
+					o[order.ID] = order
+				}
+
+				result := make([]*models.Order, len(ids))
+
+				for i, id := range ids {
+					result[i] = o[id]
+				}
+
+				return result, nil
+			},
+		}
+
 		loaders.getOrderDetails = &OrderDetailLoader{
 			maxBatch: 100,
 			wait:	  2 * time.Millisecond,
 			fetch: 	func(order_ids []string) ([][]*models.OrderDetail, []error)	{
-				// need to work on this and implement in resolver
 				order_details, err := dl.OrderDetailRepo.GetOrderDetails(order_ids)
 				if err != nil {
 					return nil, []error{err}

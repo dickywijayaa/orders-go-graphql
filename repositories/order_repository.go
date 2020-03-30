@@ -40,6 +40,16 @@ func (o *OrderRepository) GetOrderById(id string) (*models.Order, error) {
 	return &order, nil
 }
 
+func (o *OrderRepository) GetOrderByIds(ids []string) ([]*models.Order, error) {
+	var orders []*models.Order
+	err := o.DB.Model(&orders).Where("id in (?)", pg.In(ids)).Select()
+	if err != nil {
+		return nil, err
+	}
+
+	return orders, nil
+}
+
 func (o *OrderRepository) GetBuyerOrders(buyer_id string) ([]*models.Order, error) {
 	var orders []*models.Order
 	err := o.DB.Model(&orders).Where("buyer_id = ?", buyer_id).Select()
