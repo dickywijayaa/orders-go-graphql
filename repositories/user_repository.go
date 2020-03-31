@@ -63,3 +63,8 @@ func (u *UserRepository) DeleteUser(id string) (string, error) {
 
 	return id, err
 }
+
+func (u *UserRepository) UpdateUser(user *models.User) (*models.User, error) {
+	_, err := u.DB.Model(user).Where("id = ?", user.ID).Update()
+	return user, err
+}

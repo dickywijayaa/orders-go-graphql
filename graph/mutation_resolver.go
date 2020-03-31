@@ -10,23 +10,26 @@ import (
 	"github.com/dickywijayaa/orders-go-graphql/graph/generated"
 )
 
+const VALIDATION_NAME_LENGTH_ERROR_MESSAGE = "name is not long enough."
+const VALIDATION_EMAIL_FORMAT_ERROR_MESSAGE = "invalid email format."
+const VALIDATION_USER_NOT_EXISTS_ERROR_MESSAGE = "user not exists."
+const PAYLOAD_UPDATE_EMPTY_ERROR_MESSAGE = "nothing value to be updated."
+
 type mutationResolver struct { *Resolver }
 
 func (r *Resolver) Mutation() generated.MutationResolver {
 	return &mutationResolver{r}
 }
 
-
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (*models.User, error) {
 	if (len(input.Name) < 5) {
-		return nil, errors.New("name is not long enough.")
+		return nil, errors.New(VALIDATION_NAME_LENGTH_ERROR_MESSAGE)
 	}
 
-	rgx := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
-	result := rgx.MatchString(input.Email)
+	result := checkEmailRegex(input.Email)
 	
 	if !result {
-		return nil, errors.New("invalid email format")
+		return nil, errors.New(VALIDATION_EMAIL_FORMAT_ERROR_MESSAGE)
 	}
 
 	user := models.User{
@@ -36,6 +39,52 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 	return r.UserRepo.CreateUser(&user)
 }
 
-func (r *mutationResolver) DeleteUser(ctx context.Context, input string) (string, error) {
-	return r.UserRepo.DeleteUser(input)
+func (r *mutationResolver) DeleteUser(ctx context.Context, id string) (string, error) {
+	return r.UserRepo.DeleteUser(id)
+}
+
+func (r *mutationResolver) UpdateUser(ctx context.Context, id string, input model.UpdateUser) (*models.User, error) {
+	if input.Name == nil && input.Email == nil {
+		// make sure there is something to update
+		return nil, errors.New(PAYLOAD_UPDATE_EMPTY_ERROR_MESSAGE)
+	}
+
+	user, err := r.UserRepo.GetUserById(id)
+	if err != nil || user == nil {
+		return nil, errors.New(VALIDATION_USER_NOT_EXISTS_ERROR_MESSAGE)
+	}
+
+	if input.Name != nil {
+		if (len(*input.Name) < 5) {
+			return nil, errors.New(VALIDATION_NAME_LENGTH_ERROR_MESSAGE)
+		}
+
+		user.Name = *input.Name
+	}
+
+	if input.Email != nil {
+		check_email := checkEmailRegex(*input.Email)
+		if !check_email {
+			return nil, errors.New(VALIDATION_EMAIL_FORMAT_ERROR_MESSAGE)
+		}
+
+		user.Email = *input.Email
+	}
+
+	user, err = r.UserRepo.UpdateUser(user)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func checkEmailRegex(email string) bool {
+	rgx := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+	result := rgx.MatchString(email)
+
+	if !result {
+		return false
+	}
+	return true
 }

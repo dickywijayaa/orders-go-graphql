@@ -25,12 +25,20 @@ input NewUser {
     email: String!
 }
 
+input UpdateUser {
+    name: String
+    email: String
+}
+
 type Query {
     orders: [Order!]!
     users: [User!]!
+    order(id: ID!): Order!
+    user(id: ID!): User!
 }
 
 type Mutation {
     createUser(input: NewUser!): User!
-    deleteUser(input: ID!): ID!
+    deleteUser(id: ID!): ID!
+    updateUser(id: ID!, input: UpdateUser!): User!
 }

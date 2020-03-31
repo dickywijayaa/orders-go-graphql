@@ -20,3 +20,11 @@ func (r *queryResolver) Users(ctx context.Context) ([]*models.User, error) {
 func (r *queryResolver) Orders(ctx context.Context) ([]*models.Order, error) {
 	return r.OrderRepo.GetOrder()
 }
+
+func (r *queryResolver) User(ctx context.Context, id string) (*models.User, error) {
+	return r.UserRepo.GetUserById(id)
+}
+
+func (r *queryResolver) Order(ctx context.Context, id string) (*models.Order, error) {
+	return r.OrderRepo.GetOrderById(id)
+}
