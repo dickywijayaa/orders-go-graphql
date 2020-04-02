@@ -8,10 +8,14 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-pg/pg/v9"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+
 	"github.com/dickywijayaa/orders-go-graphql/graph"
 	"github.com/dickywijayaa/orders-go-graphql/graph/generated"
 	"github.com/dickywijayaa/orders-go-graphql/postgres"
 	"github.com/dickywijayaa/orders-go-graphql/repositories"
+	oauth "github.com/dickywijayaa/orders-go-graphql/middleware"
 )
 
 const defaultPort = "8080"
@@ -29,25 +33,36 @@ func main() {
 
 	defer db.Close()
 
-	middleware := graph.Dataloader{
-		UserRepo: repositories.UserRepository{DB: db},
-		OrderRepo: repositories.OrderRepository{DB: db},
-		OrderDetailRepo: repositories.OrderDetailRepository{DB: db},
-	}
+	UserRepo := repositories.UserRepository{DB: db}
+
+	router := chi.NewRouter()
+	router.Use(middleware.RequestID)
+	router.Use(middleware.Logger)
+	router.Use(oauth.OAuthMiddleware(UserRepo))
 
 	db.AddQueryHook(postgres.DBLogger{})
 
 	c := generated.Config{Resolvers: &graph.Resolver{
-		UserRepo: repositories.UserRepository{DB: db},
+		UserRepo: UserRepo,
 		OrderRepo: repositories.OrderRepository{DB: db},
 		OrderDetailRepo: repositories.OrderDetailRepository{DB: db},
 	}}
 
+	middleware := graph.Dataloader{
+		UserRepo: UserRepo,
+		OrderRepo: repositories.OrderRepository{DB: db},
+		OrderDetailRepo: repositories.OrderDetailRepository{DB: db},
+	}
+
 	queryHandler := handler.NewDefaultServer(generated.NewExecutableSchema(c))
 
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", middleware.LoaderMiddleware(db, queryHandler))
+	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
+	router.Handle("/query", middleware.LoaderMiddleware(db, queryHandler))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+
+	err := http.ListenAndServe(":"+port, router)
+	if err != nil {
+		panic(err)
+	}
 }
