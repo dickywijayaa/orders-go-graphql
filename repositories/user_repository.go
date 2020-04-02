@@ -1,7 +1,10 @@
 package repositories
 
 import (
+	"fmt"
+
 	"github.com/dickywijayaa/orders-go-graphql/models"
+	"github.com/dickywijayaa/orders-go-graphql/graph/model"
 
 	"github.com/go-pg/pg/v9"
 )
@@ -10,9 +13,30 @@ type UserRepository struct {
 	DB *pg.DB
 }
 
-func (u *UserRepository) GetUser() ([]*models.User, error) {
+func (u *UserRepository) GetUser(input *model.FilterUser, limit *int, offset *int) ([]*models.User, error) {
 	var users []*models.User
-	err := u.DB.Model(&users).Select()
+	query := u.DB.Model(&users)
+	
+	if input != nil {
+		if input.Name != nil && *input.Name != "" {
+			query = query.Where("name ILIKE ?", fmt.Sprintf("%%%s%%", *input.Name))
+		}
+
+		if input.Email != nil && *input.Email != "" {
+			query = query.Where("email ILIKE ?", fmt.Sprintf("%%%s%%", *input.Email))
+		}
+	}
+
+	if limit != nil {
+		query = query.Limit(*limit)
+	}
+
+	if offset != nil {
+		query = query.Limit(*offset)
+	}
+
+	err := query.Select()
+
 	if err != nil {
 		return nil, err
 	}

@@ -2,6 +2,11 @@
 
 package model
 
+type FilterUser struct {
+	Name  *string `json:"name"`
+	Email *string `json:"email"`
+}
+
 type NewUser struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`

@@ -30,9 +30,14 @@ input UpdateUser {
     email: String
 }
 
+input FilterUser {
+    name: String
+    email: String
+}
+
 type Query {
     orders: [Order!]!
-    users: [User!]!
+    users(input: FilterUser, limit: Int = 10, offset: Int = 0): [User!]!
     order(id: ID!): Order!
     user(id: ID!): User!
 }

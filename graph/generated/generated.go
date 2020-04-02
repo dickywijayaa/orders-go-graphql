@@ -72,7 +72,7 @@ type ComplexityRoot struct {
 		Order  func(childComplexity int, id string) int
 		Orders func(childComplexity int) int
 		User   func(childComplexity int, id string) int
-		Users  func(childComplexity int) int
+		Users  func(childComplexity int, input *model.FilterUser, limit *int, offset *int) int
 	}
 
 	User struct {
@@ -98,7 +98,7 @@ type OrderDetailResolver interface {
 }
 type QueryResolver interface {
 	Orders(ctx context.Context) ([]*models.Order, error)
-	Users(ctx context.Context) ([]*models.User, error)
+	Users(ctx context.Context, input *model.FilterUser, limit *int, offset *int) ([]*models.User, error)
 	Order(ctx context.Context, id string) (*models.Order, error)
 	User(ctx context.Context, id string) (*models.User, error)
 }
@@ -256,7 +256,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.Users(childComplexity), true
+		args, err := ec.field_Query_users_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Users(childComplexity, args["input"].(*model.FilterUser), args["limit"].(*int), args["offset"].(*int)), true
 
 	case "User.email":
 		if e.complexity.User.Email == nil {
@@ -382,9 +387,14 @@ input UpdateUser {
     email: String
 }
 
+input FilterUser {
+    name: String
+    email: String
+}
+
 type Query {
     orders: [Order!]!
-    users: [User!]!
+    users(input: FilterUser, limit: Int = 10, offset: Int = 0): [User!]!
     order(id: ID!): Order!
     user(id: ID!): User!
 }
@@ -490,6 +500,36 @@ func (ec *executionContext) field_Query_user_args(ctx context.Context, rawArgs m
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_users_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.FilterUser
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalOFilterUser2ᚖgithubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋgraphᚋmodelᚐFilterUser(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg2
 	return args, nil
 }
 
@@ -1007,9 +1047,16 @@ func (ec *executionContext) _Query_users(ctx context.Context, field graphql.Coll
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_users_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Users(rctx)
+		return ec.resolvers.Query().Users(rctx, args["input"].(*model.FilterUser), args["limit"].(*int), args["offset"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2365,6 +2412,30 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputFilterUser(ctx context.Context, obj interface{}) (model.FilterUser, error) {
+	var it model.FilterUser
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "email":
+			var err error
+			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNewUser(ctx context.Context, obj interface{}) (model.NewUser, error) {
 	var it model.NewUser
 	var asMap = obj.(map[string]interface{})
@@ -3435,6 +3506,41 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
+}
+
+func (ec *executionContext) unmarshalOFilterUser2githubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋgraphᚋmodelᚐFilterUser(ctx context.Context, v interface{}) (model.FilterUser, error) {
+	return ec.unmarshalInputFilterUser(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOFilterUser2ᚖgithubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋgraphᚋmodelᚐFilterUser(ctx context.Context, v interface{}) (*model.FilterUser, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOFilterUser2githubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋgraphᚋmodelᚐFilterUser(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {
+	return graphql.UnmarshalInt(v)
+}
+
+func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	return graphql.MarshalInt(v)
+}
+
+func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOInt2int(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec.marshalOInt2int(ctx, sel, *v)
 }
 
 func (ec *executionContext) marshalOOrder2githubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐOrder(ctx context.Context, sel ast.SelectionSet, v models.Order) graphql.Marshaler {
