@@ -1,7 +1,23 @@
+scalar Time
+
+type AuthToken {
+    token: String!
+    expired_at: Time!
+}
+
+type AuthResponse {
+    auth: AuthToken!
+    user: User!
+}
+
 type User {
     id: String!
     name: String!
     email: String!
+    password: String!
+    createdAt: Time!
+    updatedAt: Time!
+
     orders: [Order]
 }
 
@@ -23,6 +39,7 @@ type OrderDetail {
 input NewUser {
     name: String!
     email: String!
+    password: String!
 }
 
 input UpdateUser {
@@ -43,7 +60,7 @@ type Query {
 }
 
 type Mutation {
-    createUser(input: NewUser!): User!
+    createUser(input: NewUser!): AuthResponse!
     deleteUser(id: ID!): ID!
     updateUser(id: ID!, input: UpdateUser!): User!
 }

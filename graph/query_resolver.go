@@ -5,7 +5,6 @@ import (
 
 	"github.com/dickywijayaa/orders-go-graphql/models"
 	"github.com/dickywijayaa/orders-go-graphql/graph/generated"
-	"github.com/dickywijayaa/orders-go-graphql/graph/model"
 )
 
 type queryResolver struct{ *Resolver }
@@ -14,7 +13,7 @@ func (r *Resolver) Query() generated.QueryResolver {
 	return &queryResolver{r}
 }
 
-func (r *queryResolver) Users(ctx context.Context, input *model.FilterUser, limit *int, offset *int) ([]*models.User, error) {
+func (r *queryResolver) Users(ctx context.Context, input *models.FilterUser, limit *int, offset *int) ([]*models.User, error) {
 	return r.UserRepo.GetUser(input, limit, offset)
 }
 

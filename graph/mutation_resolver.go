@@ -1,16 +1,17 @@
 package graph
 
 import (
+	"log"
 	"context"
 	"errors"
 	"regexp"
 
 	"github.com/dickywijayaa/orders-go-graphql/models"
-	"github.com/dickywijayaa/orders-go-graphql/graph/model"
 	"github.com/dickywijayaa/orders-go-graphql/graph/generated"
 )
 
 const VALIDATION_NAME_LENGTH_ERROR_MESSAGE = "name is not long enough."
+const VALIDATION_PASSWORD_LENGTH_ERROR_MESSAGE = "password is not long enough."
 const VALIDATION_EMAIL_FORMAT_ERROR_MESSAGE = "invalid email format."
 const VALIDATION_USER_NOT_EXISTS_ERROR_MESSAGE = "user not exists."
 const PAYLOAD_UPDATE_EMPTY_ERROR_MESSAGE = "nothing value to be updated."
@@ -21,7 +22,7 @@ func (r *Resolver) Mutation() generated.MutationResolver {
 	return &mutationResolver{r}
 }
 
-func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (*models.User, error) {
+func (r *mutationResolver) CreateUser(ctx context.Context, input models.NewUser) (*models.AuthResponse, error) {
 	if (len(input.Name) < 5) {
 		return nil, errors.New(VALIDATION_NAME_LENGTH_ERROR_MESSAGE)
 	}
@@ -32,18 +33,60 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 		return nil, errors.New(VALIDATION_EMAIL_FORMAT_ERROR_MESSAGE)
 	}
 
-	user := models.User{
+	if (len(input.Password) < 5) {
+		return nil, errors.New(VALIDATION_PASSWORD_LENGTH_ERROR_MESSAGE)
+	}
+
+	user_data := models.User{
 		Name: input.Name,
 		Email: input.Email,
 	}
-	return r.UserRepo.CreateUser(&user)
+
+	err := user_data.HashPassword(input.Password)
+	if err != nil {
+		log.Printf("error when hash password : %v", err)
+		return nil, errors.New("something went wrong")
+	}
+	
+	tx, err := r.UserRepo.DB.Begin()
+	if err != nil {
+		log.Printf("error when begin transaction : %v", err)
+		return nil, errors.New("something went wrong")
+	}
+
+	defer tx.Rollback()
+	
+	user, err := r.UserRepo.CreateUser(&user_data)
+	if err != nil {
+		log.Printf("error when insert user : %v", err)
+		return nil, errors.New("something went wrong")
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Printf("error when commit : %v", err)
+		return nil, errors.New("something went wrong")
+	}
+
+	token, err := user.GenerateToken()
+	if err != nil {
+		log.Printf("error when generate token : %v", err)
+		return nil, errors.New("something went wrong")
+	}
+
+	response := &models.AuthResponse{
+		Auth: token,
+		User: user,
+	}
+
+	return response, nil
 }
 
 func (r *mutationResolver) DeleteUser(ctx context.Context, id string) (string, error) {
 	return r.UserRepo.DeleteUser(id)
 }
 
-func (r *mutationResolver) UpdateUser(ctx context.Context, id string, input model.UpdateUser) (*models.User, error) {
+func (r *mutationResolver) UpdateUser(ctx context.Context, id string, input models.UpdateUser) (*models.User, error) {
 	if input.Name == nil && input.Email == nil {
 		// make sure there is something to update
 		return nil, errors.New(PAYLOAD_UPDATE_EMPTY_ERROR_MESSAGE)

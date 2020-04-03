@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/dickywijayaa/orders-go-graphql/models"
-	"github.com/dickywijayaa/orders-go-graphql/graph/model"
 
 	"github.com/go-pg/pg/v9"
 )
@@ -13,7 +12,7 @@ type UserRepository struct {
 	DB *pg.DB
 }
 
-func (u *UserRepository) GetUser(input *model.FilterUser, limit *int, offset *int) ([]*models.User, error) {
+func (u *UserRepository) GetUser(input *models.FilterUser, limit *int, offset *int) ([]*models.User, error) {
 	var users []*models.User
 	query := u.DB.Model(&users)
 	
