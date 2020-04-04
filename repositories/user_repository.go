@@ -53,6 +53,26 @@ func (u *UserRepository) GetUserById(id string) (*models.User, error) {
 	return &user, nil
 }
 
+func (u *UserRepository) GetUserByEmail(email string) (*models.User, error) {
+	var user models.User
+	err := u.DB.Model(&user).Where("email = ?", email).First()
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (u *UserRepository) GetUserByName(name string) (*models.User, error) {
+	var user models.User
+	err := u.DB.Model(&user).Where("name = ?", name).First()
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 func (u *UserRepository) GetUserByIds(ids []string) ([]*models.User, []error) {
 	var users []*models.User
 	err := u.DB.Model(&users).Where("id in (?)", pg.In(ids)).Select()

@@ -1,9 +1,11 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
+	"github.com/dgrijalva/jwt-go"
 )
 
 type User struct {
@@ -15,6 +17,8 @@ type User struct {
 	UpdatedAt	time.Time 	`json:"updated_at"`
 	DeletedAt	*time.Time	`json:"-" pg:",softdelete"`
 }
+
+const JWT_SECRET = "jwtsecret"
 
 func (u *User) HashPassword(password string) error {
 	bytePassword := []byte(password)
@@ -29,9 +33,25 @@ func (u *User) HashPassword(password string) error {
 }
 
 func (u *User) GenerateToken() (*AuthToken, error) {
-	response := &AuthToken{
-		Token: "random",
-		ExpiredAt: time.Now(),
+	expired_at := time.Now().Add(time.Hour * 24 * 7)
+	claims := &jwt.StandardClaims{
+		ExpiresAt: expired_at.Unix(),
+		Issuer: "orders_go_graphql",
+		Id: u.ID,
+		IssuedAt: time.Now().Unix(),
 	}
+
+	secret := []byte(JWT_SECRET)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	result, err := token.SignedString(secret)
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AuthToken{
+		Token: fmt.Sprintf("%v", result),
+		ExpiredAt: expired_at,
+	}
+
 	return response, nil
 }

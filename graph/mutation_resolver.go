@@ -11,8 +11,10 @@ import (
 )
 
 const VALIDATION_NAME_LENGTH_ERROR_MESSAGE = "name is not long enough."
+const VALIDATION_NAME_EXISTS_ERROR_MESSAGE = "name is already exists."
 const VALIDATION_PASSWORD_LENGTH_ERROR_MESSAGE = "password is not long enough."
 const VALIDATION_EMAIL_FORMAT_ERROR_MESSAGE = "invalid email format."
+const VALIDATION_EMAIL_EXISTS_ERROR_MESSAGE = "email is already exists."
 const VALIDATION_USER_NOT_EXISTS_ERROR_MESSAGE = "user not exists."
 const PAYLOAD_UPDATE_EMPTY_ERROR_MESSAGE = "nothing value to be updated."
 
@@ -33,6 +35,11 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input models.NewUser)
 		return nil, errors.New(VALIDATION_EMAIL_FORMAT_ERROR_MESSAGE)
 	}
 
+	check_email_exists, err := r.UserRepo.GetUserByEmail(input.Email)
+	if check_email_exists != nil && err == nil {
+		return nil, errors.New(VALIDATION_EMAIL_EXISTS_ERROR_MESSAGE)
+	}
+
 	if (len(input.Password) < 5) {
 		return nil, errors.New(VALIDATION_PASSWORD_LENGTH_ERROR_MESSAGE)
 	}
@@ -42,7 +49,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input models.NewUser)
 		Email: input.Email,
 	}
 
-	err := user_data.HashPassword(input.Password)
+	err = user_data.HashPassword(input.Password)
 	if err != nil {
 		log.Printf("error when hash password : %v", err)
 		return nil, errors.New("something went wrong")
