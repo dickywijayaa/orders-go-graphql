@@ -1,0 +1,11 @@
+CREATE TABLE products
+(
+    id      	BIGSERIAL       PRIMARY KEY,
+	seller_id	INTEGER    NOT NULL,
+	name INTEGER    NOT NULL,
+	price FLOAT    NOT NULL,
+	weight FLOAT    NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL
+);

@@ -43,7 +43,6 @@ type Order {
     id: String!
     buyer: User!
     total_price: Float!
-    shipping_method: 
     total_shipping_cost: Float!
     details: [OrderDetail!]!
 }
@@ -60,7 +59,7 @@ type OrderDetail {
     shipping_method: ShippingMethod!
 }
 
-type CartDetails {
+type CartDetail {
     id: String!
     cart: Cart!
     product: Product!

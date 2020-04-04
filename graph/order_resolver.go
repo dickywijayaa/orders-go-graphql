@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/dickywijayaa/orders-go-graphql/models"
 	"github.com/dickywijayaa/orders-go-graphql/graph/generated"
@@ -19,4 +20,8 @@ func (o *orderResolver) Buyer(ctx context.Context, obj *models.Order) (*models.U
 
 func (o *orderResolver) Details(ctx context.Context, obj *models.Order) ([]*models.OrderDetail, error) {
 	return ctxLoaders(ctx).getOrderDetails.Load(obj.ID) // single query to fetch many rows
+}
+
+func (r *orderResolver) TotalShippingCost(ctx context.Context, obj *models.Order) (float64, error) {
+	panic(fmt.Errorf("not implemented"))
 }

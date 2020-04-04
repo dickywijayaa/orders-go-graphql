@@ -16,6 +16,12 @@ type AuthToken struct {
 	ExpiredAt time.Time `json:"expired_at"`
 }
 
+type CreateOrderInput struct {
+	ItemName     string `json:"item_name"`
+	ItemPrice    int    `json:"item_price"`
+	ItemQuantity int    `json:"item_quantity"`
+}
+
 type FilterUser struct {
 	Name  *string `json:"name"`
 	Email *string `json:"email"`
@@ -30,6 +36,16 @@ type NewUser struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type Province struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type ShippingMethod struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 type UpdateUser struct {

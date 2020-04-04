@@ -70,3 +70,25 @@ models:
     fields:
       order:
         resolver: true
+  Cart:
+    model: github.com/dickywijayaa/orders-go-graphql/models.Cart
+    fields:
+      cart_detail:
+        resolver: true
+      buyer:
+        resolver: true
+  CartDetail:
+    model: github.com/dickywijayaa/orders-go-graphql/models.CartDetail
+    fields:
+      cart:
+        resolver: true
+  UserAddress:
+    model: github.com/dickywijayaa/orders-go-graphql/models.UserAddress
+    fields:
+      user:
+        resolver: true
+  Product:
+    model: github.com/dickywijayaa/orders-go-graphql/models.Product
+    fields:
+      user:
+        resolver: true

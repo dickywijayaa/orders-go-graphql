@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"fmt"
 	"log"
 	"context"
 	"errors"
@@ -152,4 +153,8 @@ func checkEmailRegex(email string) bool {
 		return false
 	}
 	return true
+}
+
+func (r *mutationResolver) CreateOrder(ctx context.Context, input models.CreateOrderInput) (*models.Order, error) {
+	panic(fmt.Errorf("not implemented"))
 }
