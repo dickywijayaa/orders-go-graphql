@@ -15,25 +15,69 @@ type User {
     name: String!
     email: String!
     password: String!
+    role: String!
     createdAt: Time!
     updatedAt: Time!
 
     orders: [Order]
 }
 
+type UserAddress {
+    id: String!
+    user: User!
+    address: String!
+    province: Province!
+}
+
+type Province {
+    id: String!
+    name: String!
+}
+
+type ShippingMethod {
+    id: String!
+    name: String!
+}
+
 type Order {
     id: String!
     buyer: User!
     total_price: Float!
+    shipping_method: 
+    total_shipping_cost: Float!
     details: [OrderDetail!]!
 }
 
 type OrderDetail {
     id: String!
     order: Order!
+    seller: User!
     item_name: String!
-    item_price: Int!
+    item_price: Float!
     item_quantity: Int!
+    item_weight: Float!
+    shipping_cost: Float!
+    shipping_method: ShippingMethod!
+}
+
+type CartDetails {
+    id: String!
+    cart: Cart!
+    product: Product!
+    quantity: Int!
+}
+
+type Cart {
+    id: String!
+    buyer: User!
+}
+
+type Product {
+    id: String!
+    seller: User!
+    name: String!
+    price: Float!
+    weight: Float!
 }
 
 input NewUser {
@@ -57,6 +101,12 @@ input LoginUserInput {
     password: String!
 }
 
+input CreateOrderInput {
+    item_name: String!
+    item_price: Int!
+    item_quantity: Int!
+}
+
 type Query {
     orders: [Order!]!
     users(input: FilterUser, limit: Int = 10, offset: Int = 0): [User!]!
@@ -69,4 +119,5 @@ type Mutation {
     createUser(input: NewUser!): AuthResponse!
     deleteUser(id: ID!): ID!
     updateUser(id: ID!, input: UpdateUser!): User!
+    createOrder(input: CreateOrderInput!): Order!
 }

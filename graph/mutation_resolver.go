@@ -47,6 +47,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input models.NewUser)
 	user_data := models.User{
 		Name: input.Name,
 		Email: input.Email,
+		Role: "default", // need to be updated
 	}
 
 	err = user_data.HashPassword(input.Password)
