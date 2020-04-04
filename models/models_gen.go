@@ -21,6 +21,11 @@ type FilterUser struct {
 	Email *string `json:"email"`
 }
 
+type LoginUserInput struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 type NewUser struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`

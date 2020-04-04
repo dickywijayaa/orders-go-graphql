@@ -52,6 +52,11 @@ input FilterUser {
     email: String
 }
 
+input LoginUserInput {
+    email: String!
+    password: String!
+}
+
 type Query {
     orders: [Order!]!
     users(input: FilterUser, limit: Int = 10, offset: Int = 0): [User!]!
@@ -60,6 +65,7 @@ type Query {
 }
 
 type Mutation {
+    login(input: LoginUserInput!): AuthToken!
     createUser(input: NewUser!): AuthResponse!
     deleteUser(id: ID!): ID!
     updateUser(id: ID!, input: UpdateUser!): User!

@@ -2,9 +2,11 @@ package repositories
 
 import (
 	"fmt"
+	"errors"
 
 	"github.com/dickywijayaa/orders-go-graphql/models"
 
+	"golang.org/x/crypto/bcrypt"
 	"github.com/go-pg/pg/v9"
 )
 
@@ -110,4 +112,19 @@ func (u *UserRepository) DeleteUser(id string) (string, error) {
 func (u *UserRepository) UpdateUser(user *models.User) (*models.User, error) {
 	_, err := u.DB.Model(user).Where("id = ?", user.ID).Update()
 	return user, err
+}
+
+func (u *UserRepository) Login(input models.LoginUserInput) (*models.User, error) {
+	var user models.User
+	err := u.DB.Model(&user).Where("email = ?", input.Email).First()
+	if err != nil {
+		return nil, errors.New("user not exists")
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password))
+	if err != nil {
+		return nil, errors.New("invalid password")
+	}
+
+	return &user, nil
 }

@@ -129,6 +129,20 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, id string, input mode
 	return user, nil
 }
 
+func (r *mutationResolver) Login(ctx context.Context, input models.LoginUserInput) (*models.AuthToken, error) {
+	user, err := r.UserRepo.Login(input)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := user.GenerateToken()
+	if err != nil {
+		return nil, err
+	}
+
+	return token, nil
+}
+
 func checkEmailRegex(email string) bool {
 	rgx := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
 	result := rgx.MatchString(email)
