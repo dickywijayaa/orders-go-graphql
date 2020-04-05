@@ -21,13 +21,13 @@ func (p *ProductRepository) GetProducts() ([]*models.Product, error) {
 }
 
 func (p *ProductRepository) GetProductById(id string) (*models.Product, error) {
-	var product *models.Product
+	var product models.Product
 	err := p.DB.Model(&product).Where("id = ?", id).First()
 	if err != nil {
 		return nil, err
 	}
 
-	return product, nil
+	return &product, nil
 }
 
 func (p *ProductRepository) GetProductByIds(ids []string) ([]*models.Product, error) {

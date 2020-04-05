@@ -69,6 +69,7 @@ type CartDetail {
 type Cart {
     id: String!
     buyer: User!
+    details: CartDetail!
 }
 
 type Product {
@@ -113,6 +114,7 @@ type Query {
     user(id: ID!): User!
     userAddress: [UserAddress!]!
     products: [Product!]!
+    cart: Cart!
 }
 
 type Mutation {

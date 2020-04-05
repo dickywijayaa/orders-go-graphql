@@ -43,11 +43,6 @@ type Province struct {
 	Name string `json:"name"`
 }
 
-type ShippingMethod struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
-
 type UpdateUser struct {
 	Name  *string `json:"name"`
 	Email *string `json:"email"`

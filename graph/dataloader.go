@@ -1,5 +1,5 @@
 // generate new loader ? here is an example :
-// go run github.com/vektah/dataloaden OrderLoader string *github.com/dickywijayaa/orders-go-graphql/models.Province
+// go run github.com/vektah/dataloaden ShippingMethodLoader string *github.com/dickywijayaa/orders-go-graphql/models.ShippingMethod
 // go run github.com/vektah/dataloaden OrderSliceLoader string []*github.com/dickywijayaa/orders-go-graphql/models.Order
 
 package graph
@@ -15,18 +15,20 @@ import (
 )
 
 type Dataloader struct {
-	UserRepo 		repositories.UserRepository
-	OrderRepo		repositories.OrderRepository
-	OrderDetailRepo	repositories.OrderDetailRepository
-	ProvinceRepo	repositories.ProvinceRepository
+	UserRepo 			repositories.UserRepository
+	OrderRepo			repositories.OrderRepository
+	OrderDetailRepo		repositories.OrderDetailRepository
+	ProvinceRepo		repositories.ProvinceRepository
+	ShippingMethodRepo	repositories.ShippingMethodRepository
 }
 
 type Loaders struct {
-	getUserByIds 		*UserLoader
-	getOrderByBuyerIds	*OrderSliceLoader
-	getOrderByIds 		*OrderLoader
-	getOrderDetails		*OrderDetailLoader
-	getProvinceByIds	*ProvinceLoader
+	getUserByIds 			*UserLoader
+	getOrderByBuyerIds		*OrderSliceLoader
+	getOrderByIds 			*OrderLoader
+	getOrderDetails			*OrderDetailLoader
+	getProvinceByIds		*ProvinceLoader
+	getShippingMethodByIds	*ShippingMethodLoader
 }
 
 const ctxLoaderKey = "ctxloader"
@@ -152,6 +154,32 @@ func (dl *Dataloader) LoaderMiddleware(db *pg.DB, next http.Handler) http.Handle
 
 				for i, id := range ids {
 					result[i] = p[id]
+				}
+
+				return result, nil
+			},
+		}
+
+		loaders.getShippingMethodByIds = &ShippingMethodLoader{
+			maxBatch: 100,
+			wait:	  2 * time.Millisecond,
+			fetch:	func(ids []string) ([]*models.ShippingMethod, []error) {
+				shipping_methods, err := dl.ShippingMethodRepo.GetShippingMethodByIds(ids)
+				
+				if err != nil {
+					return nil, []error{err}
+				}
+
+				sp := make(map[string]*models.ShippingMethod, len(shipping_methods))
+
+				for _, shipping_method := range shipping_methods {
+					sp[shipping_method.ID] = shipping_method
+				}
+
+				result := make([]*models.ShippingMethod, len(ids))
+
+				for i, id := range ids {
+					result[i] = sp[id]
 				}
 
 				return result, nil

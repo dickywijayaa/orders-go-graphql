@@ -11,10 +11,13 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct{
-	UserRepo		repositories.UserRepository
-	OrderRepo		repositories.OrderRepository
-	OrderDetailRepo	repositories.OrderDetailRepository
-	UserAddressRepo	repositories.UserAddressRepository
-	ProvinceRepo	repositories.ProvinceRepository
-	ProductRepo 	repositories.ProductRepository
+	UserRepo			repositories.UserRepository
+	OrderRepo			repositories.OrderRepository
+	OrderDetailRepo		repositories.OrderDetailRepository
+	UserAddressRepo		repositories.UserAddressRepository
+	ProvinceRepo		repositories.ProvinceRepository
+	ProductRepo 		repositories.ProductRepository
+	ShippingMethodRepo	repositories.ShippingMethodRepository
+	CartRepo			repositories.CartRepository
+	CartDetailRepo		repositories.CartDetailRepository
 }

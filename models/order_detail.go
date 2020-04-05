@@ -13,7 +13,7 @@ type OrderDetail struct {
 	ItemPrice 			float64 `json:"item_price"`
 	ItemQuantity	 	int		`json:"item_quantity"`
 	ItemWeight		 	float64	`json:"item_weight"`
-	ShippingMethodId	int		`json:"shipping_method_id"`
+	ShippingMethodId	string	`json:"shipping_method_id"`
 	ShippingCost		float64	`json:"shipping_cost"`
 	CreatedAt			time.Time 	`json:"created_at"`
 	UpdatedAt			time.Time 	`json:"updated_at"`

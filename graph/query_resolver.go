@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 
+	"github.com/dickywijayaa/orders-go-graphql/middleware"
 	"github.com/dickywijayaa/orders-go-graphql/models"
 	"github.com/dickywijayaa/orders-go-graphql/graph/generated"
 )
@@ -35,4 +36,13 @@ func (r *queryResolver) UserAddress(ctx context.Context) ([]*models.UserAddress,
 
 func (r *queryResolver) Products(ctx context.Context) ([]*models.Product, error) {
 	return r.ProductRepo.GetProducts()
+}
+
+func (r *queryResolver) Cart(ctx context.Context) (*models.Cart, error) {
+	user, err := middleware.GetCurrentUserFromCTX(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.CartRepo.GetCartByBuyerId(user.ID)
 }
