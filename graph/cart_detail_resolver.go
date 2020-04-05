@@ -2,7 +2,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/dickywijayaa/orders-go-graphql/models"
 	"github.com/dickywijayaa/orders-go-graphql/graph/generated"
@@ -15,13 +14,9 @@ func (r *Resolver) CartDetail() generated.CartDetailResolver {
 }
 
 func (r *cartDetailResolver) Cart(ctx context.Context, obj *models.CartDetail) (*models.Cart, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.CartRepo.GetCartById(obj.CartId)
 }
 
 func (r *cartDetailResolver) Product(ctx context.Context, obj *models.CartDetail) (*models.Product, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *cartDetailResolver) Quantity(ctx context.Context, obj *models.CartDetail) (int, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.ProductRepo.GetProductById(obj.ProductId)
 }
