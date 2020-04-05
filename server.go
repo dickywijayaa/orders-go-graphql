@@ -46,12 +46,16 @@ func main() {
 		UserRepo: UserRepo,
 		OrderRepo: repositories.OrderRepository{DB: db},
 		OrderDetailRepo: repositories.OrderDetailRepository{DB: db},
+		UserAddressRepo: repositories.UserAddressRepository{DB: db},
+		ProvinceRepo: repositories.ProvinceRepository{DB: db},
+		ProductRepo: repositories.ProductRepository{DB: db},
 	}}
 
 	middleware := graph.Dataloader{
 		UserRepo: UserRepo,
 		OrderRepo: repositories.OrderRepository{DB: db},
 		OrderDetailRepo: repositories.OrderDetailRepository{DB: db},
+		ProvinceRepo: repositories.ProvinceRepository{DB: db},
 	}
 
 	queryHandler := handler.NewDefaultServer(generated.NewExecutableSchema(c))

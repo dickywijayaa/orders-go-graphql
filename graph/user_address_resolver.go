@@ -2,7 +2,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	
 	"github.com/dickywijayaa/orders-go-graphql/models"
 	"github.com/dickywijayaa/orders-go-graphql/graph/generated"
@@ -15,9 +14,9 @@ func (r *Resolver) UserAddress() generated.UserAddressResolver {
 }
 
 func (r *userAddressResolver) User(ctx context.Context, obj *models.UserAddress) (*models.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	return ctxLoaders(ctx).getUserByIds.Load(obj.UserId)
 }
 
 func (r *userAddressResolver) Province(ctx context.Context, obj *models.UserAddress) (*models.Province, error) {
-	panic(fmt.Errorf("not implemented"))
+	return ctxLoaders(ctx).getProvinceByIds.Load(obj.ProvinceId)
 }

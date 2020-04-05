@@ -1,5 +1,7 @@
-// generate new lodaer ? here is an example :
-// go run github.com/vektah/dataloaden SingleOrderLoader string *github.com/dickywijayaa/orders-go-graphql/models.Order
+// generate new loader ? here is an example :
+// go run github.com/vektah/dataloaden OrderLoader string *github.com/dickywijayaa/orders-go-graphql/models.Province
+// go run github.com/vektah/dataloaden OrderSliceLoader string []*github.com/dickywijayaa/orders-go-graphql/models.Order
+
 package graph
 
 import (
@@ -16,6 +18,7 @@ type Dataloader struct {
 	UserRepo 		repositories.UserRepository
 	OrderRepo		repositories.OrderRepository
 	OrderDetailRepo	repositories.OrderDetailRepository
+	ProvinceRepo	repositories.ProvinceRepository
 }
 
 type Loaders struct {
@@ -23,6 +26,7 @@ type Loaders struct {
 	getOrderByBuyerIds	*OrderSliceLoader
 	getOrderByIds 		*OrderLoader
 	getOrderDetails		*OrderDetailLoader
+	getProvinceByIds	*ProvinceLoader
 }
 
 const ctxLoaderKey = "ctxloader"
@@ -122,6 +126,32 @@ func (dl *Dataloader) LoaderMiddleware(db *pg.DB, next http.Handler) http.Handle
 							result[i] = append(result[i], order_detail)
 						}
 					}
+				}
+
+				return result, nil
+			},
+		}
+
+		loaders.getProvinceByIds = &ProvinceLoader{
+			maxBatch: 100,
+			wait:	  2 * time.Millisecond,
+			fetch:	func(ids []string) ([]*models.Province, []error) {
+				provinces, err := dl.ProvinceRepo.GetProvinceByIds(ids)
+				
+				if err != nil {
+					return nil, []error{err}
+				}
+
+				p := make(map[string]*models.Province, len(provinces))
+
+				for _, province := range provinces {
+					p[province.ID] = province
+				}
+
+				result := make([]*models.Province, len(ids))
+
+				for i, id := range ids {
+					result[i] = p[id]
 				}
 
 				return result, nil

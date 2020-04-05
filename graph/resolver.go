@@ -14,4 +14,7 @@ type Resolver struct{
 	UserRepo		repositories.UserRepository
 	OrderRepo		repositories.OrderRepository
 	OrderDetailRepo	repositories.OrderDetailRepository
+	UserAddressRepo	repositories.UserAddressRepository
+	ProvinceRepo	repositories.ProvinceRepository
+	ProductRepo 	repositories.ProductRepository
 }

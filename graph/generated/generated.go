@@ -115,10 +115,12 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Order  func(childComplexity int, id string) int
-		Orders func(childComplexity int) int
-		User   func(childComplexity int, id string) int
-		Users  func(childComplexity int, input *models.FilterUser, limit *int, offset *int) int
+		Order       func(childComplexity int, id string) int
+		Orders      func(childComplexity int) int
+		Products    func(childComplexity int) int
+		User        func(childComplexity int, id string) int
+		UserAddress func(childComplexity int) int
+		Users       func(childComplexity int, input *models.FilterUser, limit *int, offset *int) int
 	}
 
 	ShippingMethod struct {
@@ -179,6 +181,8 @@ type QueryResolver interface {
 	Users(ctx context.Context, input *models.FilterUser, limit *int, offset *int) ([]*models.User, error)
 	Order(ctx context.Context, id string) (*models.Order, error)
 	User(ctx context.Context, id string) (*models.User, error)
+	UserAddress(ctx context.Context) ([]*models.UserAddress, error)
+	Products(ctx context.Context) ([]*models.Product, error)
 }
 type UserResolver interface {
 	Orders(ctx context.Context, obj *models.User) ([]*models.Order, error)
@@ -500,6 +504,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Orders(childComplexity), true
 
+	case "Query.products":
+		if e.complexity.Query.Products == nil {
+			break
+		}
+
+		return e.complexity.Query.Products(childComplexity), true
+
 	case "Query.user":
 		if e.complexity.Query.User == nil {
 			break
@@ -511,6 +522,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.User(childComplexity, args["id"].(string)), true
+
+	case "Query.userAddress":
+		if e.complexity.Query.UserAddress == nil {
+			break
+		}
+
+		return e.complexity.Query.UserAddress(childComplexity), true
 
 	case "Query.users":
 		if e.complexity.Query.Users == nil {
@@ -799,6 +817,8 @@ type Query {
     users(input: FilterUser, limit: Int = 10, offset: Int = 0): [User!]!
     order(id: ID!): Order!
     user(id: ID!): User!
+    userAddress: [UserAddress!]!
+    products: [Product!]!
 }
 
 type Mutation {
@@ -2415,6 +2435,74 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 	res := resTmp.(*models.User)
 	fc.Result = res
 	return ec.marshalNUser2ᚖgithubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_userAddress(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().UserAddress(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.UserAddress)
+	fc.Result = res
+	return ec.marshalNUserAddress2ᚕᚖgithubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐUserAddressᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_products(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Products(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.Product)
+	fc.Result = res
+	return ec.marshalNProduct2ᚕᚖgithubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐProductᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4697,6 +4785,34 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "userAddress":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_userAddress(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "products":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_products(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -5333,6 +5449,43 @@ func (ec *executionContext) marshalNProduct2githubᚗcomᚋdickywijayaaᚋorders
 	return ec._Product(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNProduct2ᚕᚖgithubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐProductᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Product) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNProduct2ᚖgithubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐProduct(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNProduct2ᚖgithubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐProduct(ctx context.Context, sel ast.SelectionSet, v *models.Product) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -5452,6 +5605,57 @@ func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋdickywijayaaᚋorders
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNUserAddress2githubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐUserAddress(ctx context.Context, sel ast.SelectionSet, v models.UserAddress) graphql.Marshaler {
+	return ec._UserAddress(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUserAddress2ᚕᚖgithubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐUserAddressᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.UserAddress) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNUserAddress2ᚖgithubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐUserAddress(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNUserAddress2ᚖgithubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐUserAddress(ctx context.Context, sel ast.SelectionSet, v *models.UserAddress) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._UserAddress(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
