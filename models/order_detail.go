@@ -17,5 +17,5 @@ type OrderDetail struct {
 	ShippingCost		float64	`json:"shipping_cost"`
 	CreatedAt			time.Time 	`json:"created_at"`
 	UpdatedAt			time.Time 	`json:"updated_at"`
-	DeletedAt			*time.Time	`json:"-" pg:",softdelete"`
+	DeletedAt			*time.Time	`json:"-" pg:",soft_delete"`
 }

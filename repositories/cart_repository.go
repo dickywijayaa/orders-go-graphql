@@ -94,3 +94,20 @@ func (c *CartRepository) AddToCart(tx *pg.Tx, buyer_id string, input *models.Add
 
 	return &cart, nil
 }
+
+func (c *CartRepository) DeleteCart(buyer_id string, product_id string) (*models.Cart, error) {
+	var cart models.Cart
+	err := c.DB.Model(&cart).Where("buyer_id = ?", buyer_id).First()
+	if err != nil {
+		return nil, errors.New("there is no active cart.")
+	}
+
+	var cart_detail models.CartDetail
+	err = c.DB.Model(&cart_detail).Where("cart_id = ?", cart.Id).Where("product_id = ?", product_id).First()
+	if err != nil {
+		return &cart, nil
+	}
+
+	_, err = c.DB.Model(&cart_detail).Where("id = ?", cart_detail.Id).Delete()
+	return &cart, nil
+}

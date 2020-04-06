@@ -200,6 +200,19 @@ func (r *mutationResolver) AddToCart(ctx context.Context, input *models.AddCartI
 	return result, err
 }
 
+func (r *mutationResolver) RemoveFromCart(ctx context.Context, productID string) (*models.Cart, error) {
+	user, err := middleware.GetCurrentUserFromCTX(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if productID == "" {
+		return nil, errors.New(VALIDATION_NOT_EXISTS_PRODUCT_ERROR_MESSAGE)
+	}
+
+	return r.CartRepo.DeleteCart(user.ID, productID)
+}
+
 func (r *mutationResolver) CreateOrder(ctx context.Context, input models.CreateOrderInput) (*models.Order, error) {
 	panic(fmt.Errorf("not implemented"))
 }

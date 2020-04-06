@@ -2,7 +2,7 @@ package postgres
 
 import (
 	"context"
-	"fmt"
+	// "fmt"
 
 	"github.com/go-pg/pg/v9"
 )
@@ -14,9 +14,11 @@ func (p DBLogger) BeforeQuery(ctx context.Context, q *pg.QueryEvent) (context.Co
 }
 
 func (p DBLogger) AfterQuery(ctx context.Context, q *pg.QueryEvent) (error) {
-	fmt.Println()
-	fmt.Println(q.FormattedQuery())
-	fmt.Println()
+	// enable when want to check query
+	
+	// fmt.Println()
+	// fmt.Println(q.FormattedQuery())
+	// fmt.Println()
 
 	return nil
 }
