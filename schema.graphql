@@ -102,9 +102,12 @@ input LoginUserInput {
 }
 
 input CreateOrderInput {
-    item_name: String!
-    item_price: Int!
-    item_quantity: Int!
+    shipping_cost: Float!
+}
+
+input AddCartInput {
+    product_id: String!
+    quantity: Int!
 }
 
 type Query {
@@ -122,5 +125,6 @@ type Mutation {
     createUser(input: NewUser!): AuthResponse!
     deleteUser(id: ID!): ID!
     updateUser(id: ID!, input: UpdateUser!): User!
+    addToCart(input: AddCartInput): Cart!
     createOrder(input: CreateOrderInput!): Order!
 }

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"regexp"
 
+	"github.com/dickywijayaa/orders-go-graphql/middleware"
 	"github.com/dickywijayaa/orders-go-graphql/models"
 	"github.com/dickywijayaa/orders-go-graphql/graph/generated"
 )
@@ -153,6 +154,15 @@ func checkEmailRegex(email string) bool {
 		return false
 	}
 	return true
+}
+
+func (r *mutationResolver) AddToCart(ctx context.Context, input *models.AddCartInput) (*models.Cart, error) {
+	user, err := middleware.GetCurrentUserFromCTX(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.CartRepo.AddToCart(user.ID, input)
 }
 
 func (r *mutationResolver) CreateOrder(ctx context.Context, input models.CreateOrderInput) (*models.Order, error) {

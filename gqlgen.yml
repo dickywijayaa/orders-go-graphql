@@ -92,3 +92,5 @@ models:
     fields:
       user:
         resolver: true
+  ShippingMethod:
+    model: github.com/dickywijayaa/orders-go-graphql/models.ShippingMethod

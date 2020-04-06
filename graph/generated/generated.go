@@ -75,6 +75,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		AddToCart   func(childComplexity int, input *models.AddCartInput) int
 		CreateOrder func(childComplexity int, input models.CreateOrderInput) int
 		CreateUser  func(childComplexity int, input models.NewUser) int
 		DeleteUser  func(childComplexity int, id string) int
@@ -162,6 +163,7 @@ type MutationResolver interface {
 	CreateUser(ctx context.Context, input models.NewUser) (*models.AuthResponse, error)
 	DeleteUser(ctx context.Context, id string) (string, error)
 	UpdateUser(ctx context.Context, id string, input models.UpdateUser) (*models.User, error)
+	AddToCart(ctx context.Context, input *models.AddCartInput) (*models.Cart, error)
 	CreateOrder(ctx context.Context, input models.CreateOrderInput) (*models.Order, error)
 }
 type OrderResolver interface {
@@ -287,6 +289,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CartDetail.Quantity(childComplexity), true
+
+	case "Mutation.addToCart":
+		if e.complexity.Mutation.AddToCart == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addToCart_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddToCart(childComplexity, args["input"].(*models.AddCartInput)), true
 
 	case "Mutation.createOrder":
 		if e.complexity.Mutation.CreateOrder == nil {
@@ -825,9 +839,12 @@ input LoginUserInput {
 }
 
 input CreateOrderInput {
-    item_name: String!
-    item_price: Int!
-    item_quantity: Int!
+    shipping_cost: Float!
+}
+
+input AddCartInput {
+    product_id: String!
+    quantity: Int!
 }
 
 type Query {
@@ -845,6 +862,7 @@ type Mutation {
     createUser(input: NewUser!): AuthResponse!
     deleteUser(id: ID!): ID!
     updateUser(id: ID!, input: UpdateUser!): User!
+    addToCart(input: AddCartInput): Cart!
     createOrder(input: CreateOrderInput!): Order!
 }`, BuiltIn: false},
 }
@@ -853,6 +871,20 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_addToCart_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *models.AddCartInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalOAddCartInput2ᚖgithubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐAddCartInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_createOrder_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -1576,6 +1608,47 @@ func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field grap
 	res := resTmp.(*models.User)
 	fc.Result = res
 	return ec.marshalNUser2ᚖgithubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addToCart(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addToCart_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddToCart(rctx, args["input"].(*models.AddCartInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.Cart)
+	fc.Result = res
+	return ec.marshalNCart2ᚖgithubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐCart(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createOrder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4189,27 +4262,39 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputAddCartInput(ctx context.Context, obj interface{}) (models.AddCartInput, error) {
+	var it models.AddCartInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "product_id":
+			var err error
+			it.ProductID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "quantity":
+			var err error
+			it.Quantity, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateOrderInput(ctx context.Context, obj interface{}) (models.CreateOrderInput, error) {
 	var it models.CreateOrderInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
 		switch k {
-		case "item_name":
+		case "shipping_cost":
 			var err error
-			it.ItemName, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "item_price":
-			var err error
-			it.ItemPrice, err = ec.unmarshalNInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "item_quantity":
-			var err error
-			it.ItemQuantity, err = ec.unmarshalNInt2int(ctx, v)
+			it.ShippingCost, err = ec.unmarshalNFloat2float64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4540,6 +4625,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "updateUser":
 			out.Values[i] = ec._Mutation_updateUser(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addToCart":
+			out.Values[i] = ec._Mutation_addToCart(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -6002,6 +6092,18 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalOAddCartInput2githubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐAddCartInput(ctx context.Context, v interface{}) (models.AddCartInput, error) {
+	return ec.unmarshalInputAddCartInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOAddCartInput2ᚖgithubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐAddCartInput(ctx context.Context, v interface{}) (*models.AddCartInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOAddCartInput2githubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐAddCartInput(ctx, v)
+	return &res, err
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {

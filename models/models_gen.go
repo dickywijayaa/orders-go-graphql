@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+type AddCartInput struct {
+	ProductID string `json:"product_id"`
+	Quantity  int    `json:"quantity"`
+}
+
 type AuthResponse struct {
 	Auth *AuthToken `json:"auth"`
 	User *User      `json:"user"`
@@ -17,9 +22,7 @@ type AuthToken struct {
 }
 
 type CreateOrderInput struct {
-	ItemName     string `json:"item_name"`
-	ItemPrice    int    `json:"item_price"`
-	ItemQuantity int    `json:"item_quantity"`
+	ShippingCost float64 `json:"shipping_cost"`
 }
 
 type FilterUser struct {
