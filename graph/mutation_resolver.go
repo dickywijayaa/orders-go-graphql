@@ -19,6 +19,8 @@ const VALIDATION_EMAIL_FORMAT_ERROR_MESSAGE = "invalid email format."
 const VALIDATION_EMAIL_EXISTS_ERROR_MESSAGE = "email is already exists."
 const VALIDATION_USER_NOT_EXISTS_ERROR_MESSAGE = "user not exists."
 const PAYLOAD_UPDATE_EMPTY_ERROR_MESSAGE = "nothing value to be updated."
+const VALIDATION_NOT_EXISTS_PRODUCT_ERROR_MESSAGE = "product is not exists."
+const VALIDATION_NULL_QUANTITY_ERROR_MESSAGE = "quantity must be more than 0."
 
 type mutationResolver struct { *Resolver }
 
@@ -160,6 +162,19 @@ func (r *mutationResolver) AddToCart(ctx context.Context, input *models.AddCartI
 	user, err := middleware.GetCurrentUserFromCTX(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	if input.ProductID == "" {
+		return nil, errors.New(VALIDATION_NOT_EXISTS_PRODUCT_ERROR_MESSAGE)
+	}
+
+	if input.Quantity < 1 {
+		return nil, errors.New(VALIDATION_NULL_QUANTITY_ERROR_MESSAGE)
+	}
+
+	_, err = r.ProductRepo.GetProductById(input.ProductID)
+	if err != nil {
+		return nil, errors.New("product not exists")
 	}
 
 	return r.CartRepo.AddToCart(user.ID, input)

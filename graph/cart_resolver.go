@@ -17,6 +17,6 @@ func (r *cartResolver) Buyer(ctx context.Context, obj *models.Cart) (*models.Use
 	return ctxLoaders(ctx).getUserByIds.Load(obj.BuyerId)
 }
 
-func (r *cartResolver) Details(ctx context.Context, obj *models.Cart) (*models.CartDetail, error) {
+func (r *cartResolver) Details(ctx context.Context, obj *models.Cart) ([]*models.CartDetail, error) {
 	return r.CartDetailRepo.GetCartDetailByCartId(obj.Id)
 }

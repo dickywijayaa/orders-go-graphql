@@ -3,7 +3,6 @@ package repositories
 import (
 	"log"
 	"errors"
-	"fmt"
 
 	"github.com/dickywijayaa/orders-go-graphql/models"
 
@@ -35,9 +34,15 @@ func (c *CartRepository) GetCartByBuyerId(buyer_id string) (*models.Cart, error)
 }
 
 func (c *CartRepository) AddToCart(buyer_id string, input *models.AddCartInput) (*models.Cart, error) {
+	tx, err := c.DB.Begin()
+	if err != nil {
+		log.Printf("failed when begin tran : %v", err)
+		return nil, errors.New("something went wrong")
+	}
+	defer tx.Rollback()
+
 	// check existing cart
 	var cart models.Cart
-
 	count_cart, err := c.DB.Model(&cart).Where("buyer_id = ?", buyer_id).SelectAndCount()
 	if err != nil && count_cart != 0 {
 		log.Printf("failed when check cart : %v", err)
@@ -92,6 +97,12 @@ func (c *CartRepository) AddToCart(buyer_id string, input *models.AddCartInput) 
 			log.Printf("failed when insert cart detail : %v", err)
 			return nil, errors.New("something went wrong")
 		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Printf("failed when commit trx : %v", err)
+		return nil, errors.New("something went wrong")
 	}
 
 	return &cart, nil

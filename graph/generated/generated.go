@@ -152,7 +152,7 @@ type ComplexityRoot struct {
 
 type CartResolver interface {
 	Buyer(ctx context.Context, obj *models.Cart) (*models.User, error)
-	Details(ctx context.Context, obj *models.Cart) (*models.CartDetail, error)
+	Details(ctx context.Context, obj *models.Cart) ([]*models.CartDetail, error)
 }
 type CartDetailResolver interface {
 	Cart(ctx context.Context, obj *models.CartDetail) (*models.Cart, error)
@@ -806,7 +806,7 @@ type CartDetail {
 type Cart {
     id: String!
     buyer: User!
-    details: CartDetail!
+    details: [CartDetail!]!
 }
 
 type Product {
@@ -1305,9 +1305,9 @@ func (ec *executionContext) _Cart_details(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.CartDetail)
+	res := resTmp.([]*models.CartDetail)
 	fc.Result = res
-	return ec.marshalNCartDetail2ᚖgithubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐCartDetail(ctx, field.Selections, res)
+	return ec.marshalNCartDetail2ᚕᚖgithubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐCartDetailᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CartDetail_id(ctx context.Context, field graphql.CollectedField, obj *models.CartDetail) (ret graphql.Marshaler) {
@@ -5487,6 +5487,43 @@ func (ec *executionContext) marshalNCart2ᚖgithubᚗcomᚋdickywijayaaᚋorders
 
 func (ec *executionContext) marshalNCartDetail2githubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐCartDetail(ctx context.Context, sel ast.SelectionSet, v models.CartDetail) graphql.Marshaler {
 	return ec._CartDetail(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCartDetail2ᚕᚖgithubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐCartDetailᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.CartDetail) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCartDetail2ᚖgithubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐCartDetail(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) marshalNCartDetail2ᚖgithubᚗcomᚋdickywijayaaᚋordersᚑgoᚑgraphqlᚋmodelsᚐCartDetail(ctx context.Context, sel ast.SelectionSet, v *models.CartDetail) graphql.Marshaler {
