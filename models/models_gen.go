@@ -22,7 +22,8 @@ type AuthToken struct {
 }
 
 type CreateOrderInput struct {
-	ShippingCost float64 `json:"shipping_cost"`
+	ShippingCost     float64 `json:"shipping_cost"`
+	ShippingMethodID string  `json:"shipping_method_id"`
 }
 
 type FilterUser struct {

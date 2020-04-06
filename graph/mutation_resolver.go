@@ -1,7 +1,6 @@
 package graph
 
 import (
-	"fmt"
 	"log"
 	"context"
 	"errors"
@@ -219,5 +218,99 @@ func (r *mutationResolver) RemoveFromCart(ctx context.Context, productID string)
 }
 
 func (r *mutationResolver) CreateOrder(ctx context.Context, input models.CreateOrderInput) (*models.Order, error) {
-	panic(fmt.Errorf("not implemented"))
+	user, err := middleware.GetCurrentUserFromCTX(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	cart, err := r.CartRepo.GetCartByBuyerId(user.ID)
+	if err != nil {
+		log.Printf("error when get cart : %v", err)
+		return nil, errors.New("there is no active cart.")
+	}
+
+	cart_details, err := r.CartDetailRepo.GetCartDetailByCartId(cart.Id)
+	if err != nil {
+		log.Printf("error when get cart details : %v", err)
+		return nil, errors.New("cart detail is empty.")
+	}
+
+	var product_ids []string
+	for _, detail := range cart_details {
+		product_ids = append(product_ids, detail.ProductId)
+	}
+
+	var total_price float64
+	var order_details []*models.OrderDetail
+	products, err := r.ProductRepo.GetProductByIds(product_ids)
+	if err != nil {
+		log.Printf("error when get product : %v", err)
+		return nil, errors.New("product not exists.")
+	}
+
+	for _, product := range products {
+		for _, detail := range cart_details {
+			if detail.ProductId == product.ID {
+				qty := float64(detail.Quantity)
+				price := qty * product.Price
+				total_price += price
+
+				order_detail := &models.OrderDetail{
+					SellerId: product.SellerId,
+					ItemId: product.ID,
+					ItemName: product.Name,
+					ItemPrice: product.Price,
+					ItemQuantity: detail.Quantity,
+					ItemWeight: product.Weight,
+					ShippingMethodId: input.ShippingMethodID,
+					ShippingCost: input.ShippingCost, // only single seller
+				}
+				order_details = append(order_details, order_detail)
+			}
+		}
+	}
+
+	order := &models.Order{
+		BuyerId: user.ID,
+		TotalPrice: total_price,
+		TotalShippingCost: input.ShippingCost,
+	}
+
+	tx, err := r.OrderRepo.DB.Begin()
+	if err != nil {
+		log.Printf("error when begin trx : %v", err)
+		return nil, errors.New("something went wrong")
+	}
+
+	defer tx.Rollback()
+
+	order, err = r.OrderRepo.CreateOrder(tx, order)
+	if err != nil {
+		log.Printf("error when create order : %v", err)
+		return nil, errors.New("something went wrong")
+	}
+
+	for _, order_detail := range order_details {
+		order_detail.OrderId = order.ID
+	}
+
+	err = r.OrderRepo.CreateOrderDetails(tx, order_details)
+	if err != nil {
+		log.Printf("error when create order details : %v", err)
+		return nil, errors.New("something went wrong")
+	}
+
+	err = r.OrderRepo.DeleteActiveCart(tx, cart, cart_details)
+	if err != nil {
+		log.Printf("error when delete active cart : %v", err)
+		return nil, errors.New("something went wrong")
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Printf("error when commit : %v", err)
+		return nil, errors.New("something went wrong")
+	}
+
+	return order, nil
 }

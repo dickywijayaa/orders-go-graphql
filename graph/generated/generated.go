@@ -854,6 +854,7 @@ input LoginUserInput {
 
 input CreateOrderInput {
     shipping_cost: Float!
+    shipping_method_id: String!
 }
 
 input AddCartInput {
@@ -4365,6 +4366,12 @@ func (ec *executionContext) unmarshalInputCreateOrderInput(ctx context.Context, 
 		case "shipping_cost":
 			var err error
 			it.ShippingCost, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "shipping_method_id":
+			var err error
+			it.ShippingMethodID, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}

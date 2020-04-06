@@ -103,6 +103,7 @@ input LoginUserInput {
 
 input CreateOrderInput {
     shipping_cost: Float!
+    shipping_method_id: String!
 }
 
 input AddCartInput {

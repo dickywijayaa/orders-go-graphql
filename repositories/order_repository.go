@@ -70,3 +70,35 @@ func (o *OrderRepository) GetOrderByBuyerIds(buyer_ids []string) ([]*models.Orde
 
 	return orders, nil
 }
+
+func (o *OrderRepository) CreateOrder(tx *pg.Tx, order *models.Order) (*models.Order, error) {
+	_, err := tx.Model(order).Returning("*").Insert()
+	if err != nil {
+		return nil, err
+	}
+
+	return order, err
+}
+
+func (o *OrderRepository) CreateOrderDetails(tx *pg.Tx, order_details []*models.OrderDetail) (error) {
+	_, err := tx.Model(&order_details).Insert()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (o *OrderRepository) DeleteActiveCart(tx *pg.Tx, cart *models.Cart, cart_detail []*models.CartDetail) (error) {
+	_, err := tx.Model(cart).WherePK().Delete()
+	if err != nil {
+		return err
+	}
+	
+	_, err = tx.Model(&cart_detail).WherePK().Delete()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
