@@ -172,9 +172,14 @@ func (r *mutationResolver) AddToCart(ctx context.Context, input *models.AddCartI
 		return nil, errors.New(VALIDATION_NULL_QUANTITY_ERROR_MESSAGE)
 	}
 
-	_, err = r.ProductRepo.GetProductById(input.ProductID)
+	// check buyer is not the seller of the product
+	product, err := r.ProductRepo.GetProductById(input.ProductID)
 	if err != nil {
 		return nil, errors.New("product not exists")
+	}
+
+	if user.ID == product.SellerId {
+		return nil, errors.New("you can't buy your own product!")
 	}
 
 	tx, err := r.CartRepo.DB.Begin()
