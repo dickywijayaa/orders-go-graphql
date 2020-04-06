@@ -177,7 +177,27 @@ func (r *mutationResolver) AddToCart(ctx context.Context, input *models.AddCartI
 		return nil, errors.New("product not exists")
 	}
 
-	return r.CartRepo.AddToCart(user.ID, input)
+	tx, err := r.CartRepo.DB.Begin()
+	if err != nil {
+		log.Printf("error when begin transaction : %v", err)
+		return nil, errors.New("something went wrong")
+	}
+
+	defer tx.Rollback()
+	
+	result, err := r.CartRepo.AddToCart(tx, user.ID, input)
+	if err != nil {
+		log.Printf("error when insert user : %v", err)
+		return nil, errors.New("something went wrong")
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Printf("error when commit : %v", err)
+		return nil, errors.New("something went wrong")
+	}
+	
+	return result, err
 }
 
 func (r *mutationResolver) CreateOrder(ctx context.Context, input models.CreateOrderInput) (*models.Order, error) {

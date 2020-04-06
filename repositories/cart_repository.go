@@ -33,17 +33,10 @@ func (c *CartRepository) GetCartByBuyerId(buyer_id string) (*models.Cart, error)
 	return &cart, nil
 }
 
-func (c *CartRepository) AddToCart(buyer_id string, input *models.AddCartInput) (*models.Cart, error) {
-	tx, err := c.DB.Begin()
-	if err != nil {
-		log.Printf("failed when begin tran : %v", err)
-		return nil, errors.New("something went wrong")
-	}
-	defer tx.Rollback()
-
+func (c *CartRepository) AddToCart(tx *pg.Tx, buyer_id string, input *models.AddCartInput) (*models.Cart, error) {
 	// check existing cart
 	var cart models.Cart
-	count_cart, err := c.DB.Model(&cart).Where("buyer_id = ?", buyer_id).SelectAndCount()
+	count_cart, err := tx.Model(&cart).Where("buyer_id = ?", buyer_id).SelectAndCount()
 	if err != nil && count_cart != 0 {
 		log.Printf("failed when check cart : %v", err)
 		return nil, errors.New("something went wrong")
@@ -57,7 +50,7 @@ func (c *CartRepository) AddToCart(buyer_id string, input *models.AddCartInput) 
 			BuyerId: buyer_id,
 		}
 
-		_, err := c.DB.Model(new_cart).Returning("*").Insert()
+		_, err := tx.Model(new_cart).Returning("*").Insert()
 		if err != nil {
 			log.Printf("failed when insert new cart : %v", err)
 			return nil, errors.New("something went wrong")
@@ -71,7 +64,7 @@ func (c *CartRepository) AddToCart(buyer_id string, input *models.AddCartInput) 
 	// check existing cart details, if exists just update the quantity
 	var cart_detail models.CartDetail
 
-	check_cart_detail, err := c.DB.Model(&cart_detail).Where("cart_id = ?", cart_id).Where("product_id = ?", input.ProductID).SelectAndCount()
+	check_cart_detail, err := tx.Model(&cart_detail).Where("cart_id = ?", cart_id).Where("product_id = ?", input.ProductID).SelectAndCount()
 	if err != nil && check_cart_detail != 0 {
 		log.Printf("failed when check cart detail : %v", err)
 		return nil, errors.New("something went wrong")
@@ -79,7 +72,7 @@ func (c *CartRepository) AddToCart(buyer_id string, input *models.AddCartInput) 
 	
 	if check_cart_detail != 0 {
 		cart_detail.Quantity += input.Quantity
-		_, err := c.DB.Model(&cart_detail).Where("id = ?", cart_detail.Id).Update()
+		_, err := tx.Model(&cart_detail).Where("id = ?", cart_detail.Id).Update()
 		if err != nil {
 			log.Printf("failed when update cart detail : %v", err)
 			return nil, errors.New("something went wrong")
@@ -92,17 +85,11 @@ func (c *CartRepository) AddToCart(buyer_id string, input *models.AddCartInput) 
 		}
 	
 		// query insert
-		_, err = c.DB.Model(new_cart_detail).Insert()
+		_, err = tx.Model(new_cart_detail).Insert()
 		if err != nil {
 			log.Printf("failed when insert cart detail : %v", err)
 			return nil, errors.New("something went wrong")
 		}
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		log.Printf("failed when commit trx : %v", err)
-		return nil, errors.New("something went wrong")
 	}
 
 	return &cart, nil
